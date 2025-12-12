@@ -20,9 +20,13 @@ struct CTX
 class Application 
 {
 private:
-	std::unique_ptr<Window> window;
 	float m_lastFrameTime;
     float dt;
+
+	void toggleCursor();
+	float lastX = 0.0f;
+	float lastY = 0.0f;
+	bool firstMouse = true;
 
 	glm::mat4 view = glm::mat4(1.0f);
 	glm::mat4 projection = glm::mat4(1.0f);
@@ -32,6 +36,7 @@ private:
 	void HandleScroll(double xoffset, double yoffset);
 	void HandleKey(int key, int scancode, int action, int mods);
 public:
+	std::unique_ptr<Window> window;
 	std::unique_ptr<Shader> default_shader;
     std::unique_ptr<Camera> camera;
 	std::unique_ptr<World> world;

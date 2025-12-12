@@ -2,7 +2,7 @@
 
 World::World()
 {
-    int worldSize = 100;
+    int worldSize = 10;
 
     for (int x = 0; x < worldSize; x++)
     {

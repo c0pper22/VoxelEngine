@@ -29,6 +29,7 @@ Window::Window(int width, int height, const char* title)
     glfwSetCursorPosCallback(glfw_window, mouse_callback);
     glfwSetScrollCallback(glfw_window, scroll_callback);
     glfwSetKeyCallback(glfw_window, key_callback);
+
     glfwSetInputMode(glfw_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))

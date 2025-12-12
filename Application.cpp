@@ -2,29 +2,38 @@
 
 void Application::HandleMouseMove(double xpos, double ypos)
 {
-	static bool firstMouse = true;
-	static float lastX = 400.0f;
-	static float lastY = 300.0f;
+		if (firstMouse)
+		{
+			lastX = static_cast<float>(xpos);
+			lastY = static_cast<float>(ypos);
+			firstMouse = false;
+		}
 
-	if (firstMouse)
-	{
+		float xoffset = static_cast<float>(xpos) - lastX;
+		float yoffset = lastY - static_cast<float>(ypos);
+
 		lastX = static_cast<float>(xpos);
 		lastY = static_cast<float>(ypos);
-		firstMouse = false;
-	}
 
-	float xoffset = static_cast<float>(xpos) - lastX;
-	float yoffset = lastY - static_cast<float>(ypos);
-
-	lastX = static_cast<float>(xpos);
-	lastY = static_cast<float>(ypos);
-
-	camera->ProcessMouseMovement(xoffset, yoffset);
+		if(!gui->isDisplayed())
+			camera->ProcessMouseMovement(xoffset, yoffset);
 }
 
 void Application::HandleScroll(double xoffset, double yoffset)
 {
 	camera->ProcessMouseScroll(static_cast<float>(yoffset));
+}
+
+void Application::toggleCursor()
+{
+	if (gui->isDisplayed())
+	{
+		glfwSetInputMode(window->getGLFWwindow(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	}
+	else
+	{
+		glfwSetInputMode(window->getGLFWwindow(), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+	}
 }
 
 void Application::HandleResize(int width, int height)
@@ -42,6 +51,7 @@ void Application::HandleKey(int key, int scancode, int action, int mods)
 
 	if (key == GLFW_KEY_TAB && action == GLFW_PRESS)
 	{
+		toggleCursor();
 		gui->toggleGui();
 	}
 }
