@@ -41,6 +41,7 @@ public:
     std::unique_ptr<Camera> camera;
 	std::unique_ptr<World> world;
 	std::unique_ptr<Gui> gui;
+	std::unique_ptr<Texture> atlas;
 
 	Application();
 

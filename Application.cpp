@@ -67,10 +67,11 @@ Application::Application()
 
 	gui = std::make_unique<Gui>(window.get());
 	
-	default_shader = std::make_unique<Shader>("Shaders/default.vert", "Shaders/default.frag", "Shaders/default.geom");
+	default_shader = std::make_unique<Shader>("Shaders/texture.vert", "Shaders/texture.frag");
 	camera = std::make_unique<Camera>(glm::vec3(0.0f, 0.0f, 2.0f));
 	m_lastFrameTime = 0.0f;
 	world = std::make_unique<World>();
+	atlas = std::make_unique<Texture>("assets/atlas_1.png");
 }
 
 void Application::run()
@@ -92,6 +93,9 @@ void Application::run()
 
 		default_shader->use();
 
+		default_shader->setInt("texture1", 0);
+		atlas->bind(0);
+
 		processInput();
 
 		projection = glm::perspective(glm::radians(camera->Zoom), (float)window->getWidth() / (float)window->getHeight(), 0.1f, 100.0f);
@@ -103,9 +107,9 @@ void Application::run()
 
 		glm::mat4 model = glm::mat4(1.0f);
 		default_shader->setMat4("model", model);
-		default_shader->setVec3("uEdgeColor", 1.0f, 1.0f, 0.0f);
-		default_shader->setVec3("uFaceColor", 0.1f, 0.1f, 0.1f);
-		default_shader->setFloat("uLineWidth", 0.005f);
+		//default_shader->setVec3("uEdgeColor", 1.0f, 1.0f, 0.0f);
+		//default_shader->setVec3("uFaceColor", 0.1f, 0.1f, 0.1f);
+		//default_shader->setFloat("uLineWidth", 0.005f);
 
 		world->draw(*default_shader);
 

@@ -2,12 +2,17 @@
 #include <vector>
 #include <memory>
 
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include "Mesh.h"
 #include "CubeVertices.h"
+#include "Texture.h"
 
 class Chunk {
 public:
     static const int CHUNK_SIZE = 16;
+    static const int ATLAS_WIDTH = 16;
+    static const int ATLAS_HEIGHT = 16;
 
     Chunk(int x, int z);
     ~Chunk();
@@ -23,5 +28,5 @@ private:
 
     std::unique_ptr<Mesh> m_mesh;
 
-    void addFace(const std::array<Vertex, 6>& face, int x, int y, int z, std::vector<Vertex>& vertices);
+    void addFace(const std::array<Vertex, 6>& face, int x, int y, int z, int texX, int texY, std::vector<Vertex>& vertices);
 };

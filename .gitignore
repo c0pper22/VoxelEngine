@@ -42,3 +42,4 @@ VoxelEngine/
 x64/
 .vs/
 imgui.ini
+atlas_reader/

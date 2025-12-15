@@ -12,12 +12,6 @@ struct Vertex
 	glm::vec2 TexCoords;
 };
 
-struct Texture 
-{
-	unsigned int id;
-	std::string type;
-};	
-
 class Mesh 
 {
 private:
@@ -27,9 +21,8 @@ private:
 public:
 
 	std::vector<Vertex> vertices;
-	std::vector<Texture> textures;
 
-	Mesh(std::vector<Vertex> vertices, std::vector<Texture> textures);
+	Mesh(std::vector<Vertex> vertices);
 	~Mesh();
 
 	void draw(Shader& shader);

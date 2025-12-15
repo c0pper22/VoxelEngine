@@ -1,4 +1,5 @@
 #include "Chunk.h"
+#include "BlockData.h"
 
 Chunk::Chunk(int x, int z)
     : chunkX(x), chunkZ(z)
@@ -6,7 +7,7 @@ Chunk::Chunk(int x, int z)
     for (int x = 0; x < CHUNK_SIZE; x++) {
         for (int y = 0; y < CHUNK_SIZE; y++) {
             for (int z = 0; z < CHUNK_SIZE; z++) {
-                m_blocks[x][y][z] = 1;
+                m_blocks[x][y][z] = TNT;
             }
         }
     }
@@ -26,54 +27,73 @@ bool Chunk::isBlockSolid(int x, int y, int z) {
     return m_blocks[x][y][z] != 0;
 }
 
-void Chunk::addFace(const std::array<Vertex, 6>& faceVertices, int x, int y, int z, std::vector<Vertex>& vertices) {
+void Chunk::addFace(const std::array<Vertex, 6>& faceVertices, int x, int y, int z, int texX, int texY, std::vector<Vertex>& vertices) {
+
+    // Calculate the UV width/height of a single tile
+    // Example: 1.0 / 16 = 0.0625
+    float tileWidth = 1.0f / (float)ATLAS_WIDTH;
+    float tileHeight = 1.0f / (float)ATLAS_HEIGHT;
+
     for (int i = 0; i < 6; i++) {
         Vertex v = faceVertices[i];
+
+        // Offset Position
         v.Position.x += x;
         v.Position.y += y;
         v.Position.z += z;
+
+        // Transform UVs for the Atlas
+        // Formula: (originalUV + tileCoord) * tileSize
+        // Note: originalUV is either 0.0 or 1.0 from CubeVertices.h
+
+        v.TexCoords.x = (v.TexCoords.x + texX) * tileWidth;
+        v.TexCoords.y = (v.TexCoords.y + texY) * tileHeight;
+
         vertices.push_back(v);
     }
 }
 
 void Chunk::update() {
     std::vector<Vertex> vertices;
-    std::vector<Texture> textures;
+
 
     for (int x = 0; x < CHUNK_SIZE; x++) {
         for (int y = 0; y < CHUNK_SIZE; y++) {
             for (int z = 0; z < CHUNK_SIZE; z++) {
 
-                if (!isBlockSolid(x, y, z)) continue;
+                uint8_t type = m_blocks[x][y][z];
+
+                if (type == AIR) continue;
+
+                const BlockProps& props = GetBlockProps(type);
 
                 // Left (-X)
                 if (!isBlockSolid(x - 1, y, z))
-                    addFace(VERTICES::LEFT_FACE, x, y, z, vertices);
+                    addFace(VERTICES::LEFT_FACE, x, y, z, props.sideX, props.sideY, vertices);
 
                 // Right (+X)
                 if (!isBlockSolid(x + 1, y, z))
-                    addFace(VERTICES::RIGHT_FACE, x, y, z, vertices);
+                    addFace(VERTICES::RIGHT_FACE, x, y, z, props.sideX, props.sideY, vertices);
 
                 // Bottom (-Y)
                 if (!isBlockSolid(x, y - 1, z))
-                    addFace(VERTICES::BOTTOM_FACE, x, y, z, vertices);
+                    addFace(VERTICES::BOTTOM_FACE, x, y, z, props.botX, props.botY, vertices);
 
                 // Top (+Y)
                 if (!isBlockSolid(x, y + 1, z))
-                    addFace(VERTICES::TOP_FACE, x, y, z, vertices);
+                    addFace(VERTICES::TOP_FACE, x, y, z, props.topX, props.topY, vertices);
 
-                // Back (+Z)
+                // Front (+Z)
                 if (!isBlockSolid(x, y, z - 1))
-                    addFace(VERTICES::FRONT_FACE, x, y, z, vertices);
-
+                    addFace(VERTICES::FRONT_FACE, x, y, z, props.sideX, props.sideY, vertices);
                 // Back (-Z)
                 if (!isBlockSolid(x, y, z + 1))
-                    addFace(VERTICES::BACK_FACE, x, y, z, vertices);
+                    addFace(VERTICES::BACK_FACE, x, y, z, props.sideX, props.sideY, vertices);
             }
         }
     }
 
-    m_mesh = std::make_unique<Mesh>(vertices, textures);
+    m_mesh = std::make_unique<Mesh>(vertices);
 }
 
 void Chunk::draw(Shader& shader) {

@@ -1,9 +1,8 @@
 #include "Mesh.h"
 
-Mesh::Mesh(std::vector<Vertex> vertices, std::vector<Texture> textures)
+Mesh::Mesh(std::vector<Vertex> vertices)
 {
 	this->vertices = vertices;
-	this->textures = textures;
 
 	setupMesh();
 }
@@ -15,9 +14,9 @@ Mesh::~Mesh()
 
 void Mesh::draw(Shader& shader)
 {
-	glBindVertexArray(VAO);
-	glDrawArrays(GL_TRIANGLES, 0, static_cast<unsigned int>(vertices.size()));
-	glBindVertexArray(0);
+    glBindVertexArray(VAO);
+    glDrawArrays(GL_TRIANGLES, 0, static_cast<unsigned int>(vertices.size()));
+    glBindVertexArray(0);
 }
 
 void Mesh::setupMesh()
