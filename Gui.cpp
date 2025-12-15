@@ -31,13 +31,12 @@ void Gui::renderGui(CTX& ctx)
 {
     if (isDisplayed())
     {
-        static float f = 0.0f;
         static int counter = 0;
         ImGui::Begin("Hello, world!");
 
         ImGui::Text("This is some useful text.");
 
-        ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
+        ImGui::SliderFloat("View Distance", ctx.viewDistance, 0.1f, 2000.0f);
 
         if (ImGui::Button("Button"))
             counter++;

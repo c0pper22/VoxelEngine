@@ -39,7 +39,7 @@ void Application::toggleCursor()
 void Application::HandleResize(int width, int height)
 {
 	glViewport(0, 0, width, height);
-	projection = glm::perspective(glm::radians(camera->Zoom), (float)width / (float)height, 0.1f, 100.0f);
+	projection = glm::perspective(glm::radians(camera->Zoom), (float)width / (float)height, 0.1f, viewDistance);
 }
 
 void Application::HandleKey(int key, int scancode, int action, int mods)
@@ -69,6 +69,7 @@ Application::Application()
 	
 	default_shader = std::make_unique<Shader>("Shaders/texture.vert", "Shaders/texture.frag");
 	camera = std::make_unique<Camera>(glm::vec3(0.0f, 0.0f, 2.0f));
+	player = std::make_unique<Player>(camera.get());
 	m_lastFrameTime = 0.0f;
 	world = std::make_unique<World>();
 	atlas = std::make_unique<Texture>("assets/atlas_1.png");
@@ -86,6 +87,7 @@ void Application::run()
 		CTX ctx;
 		ctx.camera = camera.get();
 		ctx.world = world.get();
+		ctx.viewDistance = &viewDistance;
 		gui->renderGui(ctx);
 
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
@@ -96,9 +98,10 @@ void Application::run()
 		default_shader->setInt("texture1", 0);
 		atlas->bind(0);
 
+		player->update(dt);
 		processInput();
 
-		projection = glm::perspective(glm::radians(camera->Zoom), (float)window->getWidth() / (float)window->getHeight(), 0.1f, 100.0f);
+		projection = glm::perspective(glm::radians(camera->Zoom), (float)window->getWidth() / (float)window->getHeight(), 0.1f, viewDistance);
 		view = camera->GetViewMatrix();
 
 		default_shader->setMat4("projection", projection);
@@ -122,17 +125,6 @@ void Application::run()
 
 void Application::processInput()
 {
-	if (glfwGetKey(window->getGLFWwindow(), GLFW_KEY_W) == GLFW_PRESS)
-		camera->ProcessKeyboard(FORWARD, dt);
-	if (glfwGetKey(window->getGLFWwindow(), GLFW_KEY_S) == GLFW_PRESS)
-		camera->ProcessKeyboard(BACKWARD, dt);
-	if (glfwGetKey(window->getGLFWwindow(), GLFW_KEY_A) == GLFW_PRESS)
-		camera->ProcessKeyboard(LEFT, dt);
-	if (glfwGetKey(window->getGLFWwindow(), GLFW_KEY_D) == GLFW_PRESS)
-		camera->ProcessKeyboard(RIGHT, dt);
-	if (glfwGetKey(window->getGLFWwindow(), GLFW_KEY_SPACE) == GLFW_PRESS)
-		camera->ProcessKeyboard(UP, dt);
-	if (glfwGetKey(window->getGLFWwindow(), GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
-		camera->ProcessKeyboard(DOWN, dt);
+	player->handleInput(window.get(), dt);
 }
 

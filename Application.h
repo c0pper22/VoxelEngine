@@ -4,6 +4,7 @@
 #include "Camera.h"
 #include "World.h"
 #include "Gui.h"
+#include "Player.h"
 
 #include <memory>
 
@@ -15,6 +16,8 @@ struct CTX
 {
 	Camera* camera;
 	World* world;
+	Player* player;
+	float* viewDistance;
 };
 
 class Application 
@@ -27,6 +30,7 @@ private:
 	float lastX = 0.0f;
 	float lastY = 0.0f;
 	bool firstMouse = true;
+	float viewDistance = 500.0f;
 
 	glm::mat4 view = glm::mat4(1.0f);
 	glm::mat4 projection = glm::mat4(1.0f);
@@ -42,6 +46,7 @@ public:
 	std::unique_ptr<World> world;
 	std::unique_ptr<Gui> gui;
 	std::unique_ptr<Texture> atlas;
+	std::unique_ptr<Player> player;
 
 	Application();
 

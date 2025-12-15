@@ -25,6 +25,9 @@
     <Filter Include="Source Files\stb_image">
       <UniqueIdentifier>{3619f58d-f603-4a41-b46e-642c31e92148}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\stb_perlin">
+      <UniqueIdentifier>{90c3d488-5bb1-4c02-9478-2ff15b240e3a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -73,6 +76,9 @@
       <Filter>Source Files\imgui</Filter>
     </ClCompile>
     <ClCompile Include="Texture.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Player.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -138,6 +144,12 @@
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="BlockData.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="stb_perlin\stb_perlin.h">
+      <Filter>Source Files\stb_perlin</Filter>
+    </ClInclude>
+    <ClInclude Include="Player.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
