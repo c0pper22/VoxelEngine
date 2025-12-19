@@ -81,6 +81,9 @@
     <ClCompile Include="Player.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Crosshair.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Window.h">
@@ -152,6 +155,9 @@
     <ClInclude Include="Player.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="Crosshair.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\default.vert">
@@ -167,6 +173,12 @@
       <Filter>Source Files\shaders</Filter>
     </None>
     <None Include="Shaders\texture.vert">
+      <Filter>Source Files\shaders</Filter>
+    </None>
+    <None Include="Shaders\crosshair.frag">
+      <Filter>Source Files\shaders</Filter>
+    </None>
+    <None Include="Shaders\crosshair.vert">
       <Filter>Source Files\shaders</Filter>
     </None>
   </ItemGroup>

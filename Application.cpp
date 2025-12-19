@@ -68,11 +68,13 @@ Application::Application()
 	gui = std::make_unique<Gui>(window.get());
 	
 	default_shader = std::make_unique<Shader>("Shaders/texture.vert", "Shaders/texture.frag");
+	crosshair_shader = std::make_unique<Shader>("Shaders/crosshair.vert", "Shaders/crosshair.frag");
 	camera = std::make_unique<Camera>(glm::vec3(0.0f, 0.0f, 2.0f));
-	player = std::make_unique<Player>(camera.get());
 	m_lastFrameTime = 0.0f;
 	world = std::make_unique<World>();
 	atlas = std::make_unique<Texture>("assets/atlas_1.png");
+	player = std::make_unique<Player>(camera.get(), world.get());
+	crosshair = std::make_unique<Crosshair>();
 }
 
 void Application::run()
@@ -84,10 +86,12 @@ void Application::run()
 		m_lastFrameTime = currentFrame;
 
 		gui->startFrame();
+		world->update(player->getPosition());
 		CTX ctx;
 		ctx.camera = camera.get();
 		ctx.world = world.get();
 		ctx.viewDistance = &viewDistance;
+		ctx.chunkRenderDistance = &world->renderDistance;
 		gui->renderGui(ctx);
 
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
@@ -115,6 +119,8 @@ void Application::run()
 		//default_shader->setFloat("uLineWidth", 0.005f);
 
 		world->draw(*default_shader);
+
+		crosshair->draw(*crosshair_shader, window->getWidth(), window->getHeight());
 
 		gui->finishFrame();
 

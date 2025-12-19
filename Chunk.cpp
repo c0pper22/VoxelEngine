@@ -1,29 +1,27 @@
 #include "Chunk.h"
 #include "BlockData.h"
+#include "World.h"
 #include <cmath>
 
 #define STB_PERLIN_IMPLEMENTATION
 #include "stb_perlin/stb_perlin.h"
 
-Chunk::Chunk(int x, int z)
-    : chunkX(x), chunkZ(z)
+Chunk::Chunk(World* world, int x, int z)
+    : m_world(world), chunkX(x), chunkZ(z)
 {
     float frequency = 0.05f;
-    int amplitude = 16; 
+    int amplitude = 16;
     int baseHeight = 4;
 
     for (int lx = 0; lx < CHUNK_SIZE; lx++) {
         for (int lz = 0; lz < CHUNK_SIZE; lz++) {
-
             // global coords
             float globalX = (float)(chunkX * CHUNK_SIZE + lx);
             float globalZ = (float)(chunkZ * CHUNK_SIZE + lz);
 
             float noiseValue = stb_perlin_noise3(globalX * frequency, globalZ * frequency, 0.0f, 0, 0, 0);
 
-            // noiseValue is -1 to 1. We shift it to 0 to 1 range: (noise + 1) / 2
             int height = baseHeight + (int)((noiseValue + 1.0f) * 0.5f * amplitude);
-
             for (int ly = 0; ly < CHUNK_SIZE; ly++) {
                 if (ly < height - 3) {
                     m_blocks[lx][ly][lz] = STONE;
@@ -32,7 +30,7 @@ Chunk::Chunk(int x, int z)
                     m_blocks[lx][ly][lz] = DIRT;
                 }
                 else if (ly == height) {
-                    m_blocks[lx][ly][lz] = GRASS; // Top Grass
+                    m_blocks[lx][ly][lz] = GRASS;
                 }
                 else {
                     m_blocks[lx][ly][lz] = AIR;
@@ -40,20 +38,40 @@ Chunk::Chunk(int x, int z)
             }
         }
     }
-
-    update();
 }
 
 Chunk::~Chunk() {
+
 }
 
 bool Chunk::isBlockSolid(int x, int y, int z) {
-    if (x < 0 || x >= CHUNK_SIZE ||
-        y < 0 || y >= CHUNK_SIZE ||
-        z < 0 || z >= CHUNK_SIZE) {
+    // 1. Check height bounds (assuming 1 chunk high world for now)
+    if (y < 0 || y >= CHUNK_SIZE) {
         return false;
     }
-    return m_blocks[x][y][z] != 0;
+
+    // 2. Check if inside this chunk
+    if (x >= 0 && x < CHUNK_SIZE &&
+        z >= 0 && z < CHUNK_SIZE) {
+        return m_blocks[x][y][z] != 0;
+    }
+
+    // 3. If outside, ask the World for the neighbor block
+    int globalX = chunkX * CHUNK_SIZE + x;
+    int globalZ = chunkZ * CHUNK_SIZE + z;
+
+    // Note: getBlock returns 0 (AIR) if the chunk doesn't exist yet
+    return m_world->getBlock(globalX, y, globalZ) != 0;
+}
+
+uint8_t Chunk::getBlock(int x, int y, int z)
+{
+    return m_blocks[x][y][z];
+}
+
+void Chunk::setBlock(int x, int y, int z, uint8_t type)
+{
+    m_blocks[x][y][z] = type;
 }
 
 void Chunk::addFace(const std::array<Vertex, 6>& faceVertices, int x, int y, int z, int texX, int texY, std::vector<Vertex>& vertices) {
@@ -67,9 +85,9 @@ void Chunk::addFace(const std::array<Vertex, 6>& faceVertices, int x, int y, int
         Vertex v = faceVertices[i];
 
         // Offset Position
-        v.Position.x += x;
-        v.Position.y += y;
-        v.Position.z += z;
+        v.Position.x += x + 0.5f;
+        v.Position.y += y + 0.5f;
+        v.Position.z += z + 0.5f;
 
         v.TexCoords.x = (v.TexCoords.x + texX) * tileWidth;
         v.TexCoords.y = (v.TexCoords.y + texY) * tileHeight;

@@ -5,6 +5,7 @@
 #include "World.h"
 #include "Gui.h"
 #include "Player.h"
+#include "Crosshair.h"
 
 #include <memory>
 
@@ -18,6 +19,7 @@ struct CTX
 	World* world;
 	Player* player;
 	float* viewDistance;
+	int* chunkRenderDistance;
 };
 
 class Application 
@@ -42,11 +44,13 @@ private:
 public:
 	std::unique_ptr<Window> window;
 	std::unique_ptr<Shader> default_shader;
+	std::unique_ptr<Shader> crosshair_shader;
     std::unique_ptr<Camera> camera;
 	std::unique_ptr<World> world;
 	std::unique_ptr<Gui> gui;
 	std::unique_ptr<Texture> atlas;
 	std::unique_ptr<Player> player;
+	std::unique_ptr<Crosshair> crosshair;
 
 	Application();
 

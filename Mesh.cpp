@@ -9,7 +9,8 @@ Mesh::Mesh(std::vector<Vertex> vertices)
 
 Mesh::~Mesh()
 {
-
+	glDeleteVertexArrays(1, &VAO);
+	glDeleteBuffers(1, &VBO);
 }
 
 void Mesh::draw(Shader& shader)
