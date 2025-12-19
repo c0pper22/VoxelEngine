@@ -119,8 +119,8 @@ void Application::run()
 		//default_shader->setFloat("uLineWidth", 0.005f);
 
 		world->draw(*default_shader);
-
 		crosshair->draw(*crosshair_shader, window->getWidth(), window->getHeight());
+
 
 		gui->finishFrame();
 

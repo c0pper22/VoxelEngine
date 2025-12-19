@@ -23,6 +23,8 @@ void Crosshair::draw(Shader & shader, int SCR_WIDTH, int SCR_HEIGHT)
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glDisable(GL_DEPTH_TEST);
 
+	glDisable(GL_CULL_FACE);
+
 	shader.use();
 
 	glm::mat4 projection = glm::ortho(0.0f, (float)SCR_WIDTH, 0.0f, (float)SCR_HEIGHT);
@@ -48,4 +50,5 @@ void Crosshair::draw(Shader & shader, int SCR_WIDTH, int SCR_HEIGHT)
 	// 8. Cleanup state for next frame
 	glEnable(GL_DEPTH_TEST);
 	glDisable(GL_BLEND);
+	glEnable(GL_CULL_FACE);
 }

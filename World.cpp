@@ -24,7 +24,12 @@ void World::draw(Shader& shader)
 {
     for (const auto& chunk : chunks)
     {
-        chunk->draw(shader);
+        chunk->drawOpaque(shader);
+    }
+
+    for (const auto& chunk : chunks)
+    {
+        chunk->drawTransparent(shader);
     }
 }
 
@@ -35,11 +40,10 @@ void World::update(glm::vec3 playerPosition)
     int playerChunkZ = static_cast<int>(std::floor(playerPosition.z / Chunk::CHUNK_SIZE));
 
     // --- STEP 1: Unload chunks that are too far away ---
-    // This keeps memory usage stable.
     chunks.erase(
         std::remove_if(chunks.begin(), chunks.end(), [&](const std::unique_ptr<Chunk>& c) {
             int dist = std::max(std::abs(c->chunkX - playerChunkX), std::abs(c->chunkZ - playerChunkZ));
-            return dist > renderDistance + 1; // Unload if strictly outside range + buffer
+            return dist > renderDistance + 1;
             }),
         chunks.end()
     );
@@ -70,7 +74,7 @@ void World::update(glm::vec3 playerPosition)
                     chunks.push_back(std::move(newChunk));
                     chunksLoaded++;
 
-                    // 3. CORRECTED FIX: Convert chunk coords to world coords
+                    // 3. Convert chunk coords to world coords
                     int worldX = x * Chunk::CHUNK_SIZE;
                     int worldZ = z * Chunk::CHUNK_SIZE;
 

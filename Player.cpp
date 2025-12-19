@@ -57,7 +57,7 @@ void Player::handleInput(Window* window, float dt)
 
                 glm::vec3 playerPos = m_camera->Position;
                 if (glm::distance(glm::vec3(placePos), playerPos) > 1.5f) {
-                    m_world->setBlock(placePos.x, placePos.y, placePos.z, 1); // 1 = STONE
+                    m_world->setBlock(placePos.x, placePos.y, placePos.z, 5); // 1 = STONE
                 }
             }
             isRightPressed = true;

@@ -40,6 +40,9 @@ Window::Window(int width, int height, const char* title)
     }
 
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
+    glFrontFace(GL_CCW);
 }
 
 Window::~Window()
@@ -85,7 +88,6 @@ void Window::scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 
 void Window::key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
-    // Check if the current window exists and if an application function is attached
     if (g_CurrentWindow && g_CurrentWindow->onKey)
     {
         g_CurrentWindow->onKey(key, scancode, action, mods);

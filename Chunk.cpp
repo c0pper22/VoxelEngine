@@ -9,8 +9,8 @@
 Chunk::Chunk(World* world, int x, int z)
     : m_world(world), chunkX(x), chunkZ(z)
 {
-    float frequency = 0.05f;
-    int amplitude = 16;
+    float frequency = 0.1f;
+    int amplitude = 42;
     int baseHeight = 4;
 
     for (int lx = 0; lx < CHUNK_SIZE; lx++) {
@@ -22,7 +22,7 @@ Chunk::Chunk(World* world, int x, int z)
             float noiseValue = stb_perlin_noise3(globalX * frequency, globalZ * frequency, 0.0f, 0, 0, 0);
 
             int height = baseHeight + (int)((noiseValue + 1.0f) * 0.5f * amplitude);
-            for (int ly = 0; ly < CHUNK_SIZE; ly++) {
+            for (int ly = 0; ly < CHUNK_HEIGHT; ly++) {
                 if (ly < height - 3) {
                     m_blocks[lx][ly][lz] = STONE;
                 }
@@ -97,59 +97,93 @@ void Chunk::addFace(const std::array<Vertex, 6>& faceVertices, int x, int y, int
 }
 
 void Chunk::update() {
-    std::vector<Vertex> vertices;
-
+    std::vector<Vertex> opaqueVertices;
+    std::vector<Vertex> transparentVertices;
 
     for (int x = 0; x < CHUNK_SIZE; x++) {
-        for (int y = 0; y < CHUNK_SIZE; y++) {
+        for (int y = 0; y < CHUNK_HEIGHT; y++) {
             for (int z = 0; z < CHUNK_SIZE; z++) {
 
                 uint8_t type = m_blocks[x][y][z];
-
                 if (type == AIR) continue;
 
                 const BlockProps& props = GetBlockProps(type);
+                bool isCurrentTransparent = isBlockTransparent(type);
 
-                // Left (-X)
-                if (!isBlockSolid(x - 1, y, z))
-                    addFace(VERTICES::LEFT_FACE, x, y, z, props.sideX, props.sideY, vertices);
+                // Helper lambda to determine if we should draw a face against a specific neighbor
+                auto shouldDrawFace = [&](int nx, int ny, int nz) {
+                    // 1. Get neighbor ID (handle chunk bounds safely)
+                    uint8_t neighborType = 0; // Default AIR
+                    if (nx >= 0 && nx < CHUNK_SIZE && ny >= 0 && ny < CHUNK_HEIGHT && nz >= 0 && nz < CHUNK_SIZE) {
+                        neighborType = m_blocks[nx][ny][nz];
+                    }
+                    else {
+                        // Ask world for neighbor if out of bounds
+                        int gX = chunkX * CHUNK_SIZE + nx;
+                        int gZ = chunkZ * CHUNK_SIZE + nz;
+                        neighborType = m_world->getBlock(gX, ny, gZ);
+                    }
 
-                // Right (+X)
-                if (!isBlockSolid(x + 1, y, z))
-                    addFace(VERTICES::RIGHT_FACE, x, y, z, props.sideX, props.sideY, vertices);
+                    // 2. Culling Logic
+                    bool isNeighborTransparent = isBlockTransparent(neighborType);
 
-                // Bottom (-Y)
-                if (!isBlockSolid(x, y - 1, z))
-                    addFace(VERTICES::BOTTOM_FACE, x, y, z, props.botX, props.botY, vertices);
+                    if (isCurrentTransparent) {
+                        // If we are Glass, draw ONLY if neighbor is Air or a different transparent block.
+                        // We do NOT draw if neighbor is Stone (hidden) or same Glass (seamless).
+                        return isNeighborTransparent && (neighborType != type);
+                    }
+                    else {
+                        // If we are Solid (Dirt), draw if neighbor is transparent (Air or Glass).
+                        return isNeighborTransparent;
+                    }
+                    };
 
-                // Top (+Y)
-                if (!isBlockSolid(x, y + 1, z))
-                    addFace(VERTICES::TOP_FACE, x, y, z, props.topX, props.topY, vertices);
+                // Select which list to add to
+                std::vector<Vertex>& targetList = isCurrentTransparent ? transparentVertices : opaqueVertices;
 
-                // Front (+Z)
-                if (!isBlockSolid(x, y, z - 1))
-                    addFace(VERTICES::FRONT_FACE, x, y, z, props.sideX, props.sideY, vertices);
-                // Back (-Z)
-                if (!isBlockSolid(x, y, z + 1))
-                    addFace(VERTICES::BACK_FACE, x, y, z, props.sideX, props.sideY, vertices);
+                // Check all 6 faces using the new helper
+                if (shouldDrawFace(x - 1, y, z)) addFace(VERTICES::LEFT_FACE, x, y, z, props.sideX, props.sideY, targetList);
+                if (shouldDrawFace(x + 1, y, z)) addFace(VERTICES::RIGHT_FACE, x, y, z, props.sideX, props.sideY, targetList);
+                if (shouldDrawFace(x, y - 1, z)) addFace(VERTICES::BOTTOM_FACE, x, y, z, props.botX, props.botY, targetList);
+                if (shouldDrawFace(x, y + 1, z)) addFace(VERTICES::TOP_FACE, x, y, z, props.topX, props.topY, targetList);
+                if (shouldDrawFace(x, y, z - 1)) addFace(VERTICES::FRONT_FACE, x, y, z, props.sideX, props.sideY, targetList);
+                if (shouldDrawFace(x, y, z + 1)) addFace(VERTICES::BACK_FACE, x, y, z, props.sideX, props.sideY, targetList);
             }
         }
     }
 
-    m_mesh = std::make_unique<Mesh>(vertices);
+    m_mesh = std::make_unique<Mesh>(opaqueVertices);
+    m_transparentMesh = std::make_unique<Mesh>(transparentVertices);
 }
 
-void Chunk::draw(Shader& shader) {
-    if (m_mesh)
-    {
-        float globalX = chunkX * CHUNK_SIZE;
-        float globalZ = chunkZ * CHUNK_SIZE;
+void Chunk::drawOpaque(Shader& shader) {
+    if (!m_mesh) return;
 
-        glm::mat4 model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(globalX, 0.0f, globalZ));
+    float globalX = chunkX * CHUNK_SIZE;
+    float globalZ = chunkZ * CHUNK_SIZE;
+    glm::mat4 model = glm::mat4(1.0f);
+    model = glm::translate(model, glm::vec3(globalX, 0.0f, globalZ));
+    shader.setMat4("model", model);
 
-        shader.setMat4("model", model);
+    m_mesh->draw(shader);
+}
 
-        m_mesh->draw(shader);
-    }
+void Chunk::drawTransparent(Shader& shader) {
+    if (!m_transparentMesh) return;
+
+    float globalX = chunkX * CHUNK_SIZE;
+    float globalZ = chunkZ * CHUNK_SIZE;
+    glm::mat4 model = glm::mat4(1.0f);
+    model = glm::translate(model, glm::vec3(globalX, 0.0f, globalZ));
+    shader.setMat4("model", model);
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    glDepthMask(GL_FALSE);
+
+    m_transparentMesh->draw(shader);
+
+    glDepthMask(GL_TRUE);
+    glDisable(GL_BLEND);
 }

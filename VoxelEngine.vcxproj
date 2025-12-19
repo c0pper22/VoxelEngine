@@ -71,8 +71,8 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>$(IncludePath);C:\Users\kyles\Projects\VoxelEngine\glad\include;C:\Users\kyles\Projects\VoxelEngine\glfw\include</IncludePath>
-    <LibraryPath>C:\Users\kyles\Projects\VoxelEngine\glfw\lib-vc2022;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(IncludePath);$(ProjectDir)\glad\include;$(ProjectDir)\glfw\include;$(ProjectDir)\glm;$(ProjectDir)\imgui</IncludePath>
+    <LibraryPath>$(ProjectDir)\glfw\lib-vc2022;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <IncludePath>$(ProjectDir)\imgui;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(ProjectDir)\glad\include;$(ProjectDir)\glfw\include;$(ProjectDir)\glm</IncludePath>
@@ -127,6 +127,7 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
