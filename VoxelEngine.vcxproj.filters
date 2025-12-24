@@ -179,6 +179,9 @@
     <ClInclude Include="ChunkMesher.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="Threadpool.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\default.vert">

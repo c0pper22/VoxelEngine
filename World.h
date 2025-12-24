@@ -9,6 +9,13 @@
 #include "Chunk.h"
 #include "Shader.h"
 #include "AABB.h"
+#include "Threadpool.h"
+#include "ChunkMesher.h"
+
+struct MeshResult {
+    int chunkX, chunkZ;
+    ChunkMeshData data;
+};
 
 struct BlockUpdate {
     int x, y, z;
@@ -60,7 +67,11 @@ private:
     std::deque<glm::ivec3> m_fluidQueue;
     std::unordered_set<glm::ivec3> m_pendingUpdates; 
     float m_fluidTimer = 0.0f;
-    const float FLUID_TICK_RATE = 0.05f;
+    const float FLUID_TICK_RATE = 0.01f;
+
+    ThreadPool m_threadPool;
+    std::mutex m_meshMutex;
+    std::vector<MeshResult> m_meshResults;
 
     void addFluidUpdate(int x, int y, int z);
     void processWater(int x, int y, int z, uint8_t type);
@@ -68,14 +79,16 @@ private:
     std::vector<glm::ivec3> getBestFlowDirections(int x, int y, int z);
 
     Chunk* getChunk(int x, int z);
+    void updateMeshes();
 
 public:
-    const uint8_t MAX_FLUID_LEVEL = 6;
+    const uint8_t MAX_FLUID_LEVEL = 8;
 
     World();
     void draw(Shader& shader);
-    void update(glm::vec3 playerPosition);
+    void update(glm::vec3 playerPosition, float dt);
     void updateFluids(float dt);
+    void regenerateChunk(int x, int z);
 
     bool checkCollision(const AABB& box);
 

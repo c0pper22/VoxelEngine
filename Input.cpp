@@ -4,6 +4,7 @@
 
 bool Input::m_keys[512];
 bool Input::m_lastKeys[512];
+bool Input::m_frameKeys[512];
 float Input::m_mouseX = 0.0f;
 float Input::m_mouseY = 0.0f;
 float Input::m_mouseDX = 0.0f;
@@ -40,6 +41,7 @@ void Input::Init() {
 }
 
 void Input::Update() {
+
     for (int i = 0; i < 512; i++) {
         m_lastKeys[i] = m_keys[i];
     }
@@ -48,18 +50,35 @@ void Input::Update() {
     m_mouseDY = 0.0f;
 }
 
+void Input::ClearPendingKeys()
+{
+    std::memset(m_frameKeys, 0, sizeof(m_frameKeys));
+}
+
 void Input::SetKey(int glfwKey, bool pressed) {
     KeyCode key = GLFWToKeyCode(glfwKey);
     if (key != KeyCode::Unknown) {
-        m_keys[static_cast<int>(key)] = pressed;
+        int index = static_cast<int>(key);
+        m_keys[index] = pressed;
+        
+        if (pressed) {
+            m_frameKeys[index] = true;
+        }
     }
 }
 
 void Input::SetMouseButton(int glfwButton, bool pressed) {
-    if (glfwButton == GLFW_MOUSE_BUTTON_LEFT)
-        m_keys[static_cast<int>(KeyCode::MouseLeft)] = pressed;
-    if (glfwButton == GLFW_MOUSE_BUTTON_RIGHT)
-        m_keys[static_cast<int>(KeyCode::MouseRight)] = pressed;
+    if (glfwButton == GLFW_MOUSE_BUTTON_LEFT) {
+        int index = static_cast<int>(KeyCode::MouseLeft);
+        m_keys[index] = pressed;
+        if (pressed) m_frameKeys[index] = true;
+    }
+    
+    if (glfwButton == GLFW_MOUSE_BUTTON_RIGHT) {
+        int index = static_cast<int>(KeyCode::MouseRight);
+        m_keys[index] = pressed;
+        if (pressed) m_frameKeys[index] = true;
+    }
 }
 
 void Input::SetMousePosition(float x, float y) {
@@ -77,12 +96,13 @@ void Input::SetMousePosition(float x, float y) {
 }
 
 bool Input::IsKeyHeld(KeyCode key) {
-    return m_keys[static_cast<int>(key)];
+    int i = static_cast<int>(key);
+    
+    return m_keys[i] || m_frameKeys[i];
 }
 
 bool Input::IsKeyPressed(KeyCode key) {
-    int i = static_cast<int>(key);
-    return m_keys[i] && !m_lastKeys[i];
+    return m_frameKeys[static_cast<int>(key)];
 }
 
 bool Input::GetButton(const std::string& action) {

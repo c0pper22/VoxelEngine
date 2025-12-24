@@ -185,6 +185,7 @@
     <ClInclude Include="stb_image\stb_image.h" />
     <ClInclude Include="stb_perlin\stb_perlin.h" />
     <ClInclude Include="Texture.h" />
+    <ClInclude Include="Threadpool.h" />
     <ClInclude Include="Window.h" />
     <ClInclude Include="World.h" />
   </ItemGroup>

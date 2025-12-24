@@ -2,13 +2,15 @@
 #include "Input.h"
 
 Player::Player(Camera* camera, World* world, glm::vec3 startPos)
-    : m_camera(camera), m_world(world), velocity(0)
+    : m_camera(camera), m_world(world), velocity(0), m_prevPosition(startPos)
 {
     boundingBox = std::make_unique<AABB>(startPos, glm::vec3(0.6f, 1.8f, 0.6f));
 }
 
 void Player::update(float dt, World& world)
 {
+    m_prevPosition = boundingBox->position;
+
     if (creativeMode)
     {
         boundingBox->position = m_camera->Position - glm::vec3(0.0f, 1.6f, 0.0f);
@@ -48,6 +50,13 @@ void Player::update(float dt, World& world)
 
         m_camera->Position = boundingBox->position + glm::vec3(0.0f, 1.6f, 0.0f);
     }
+}
+
+void Player::interpolate(float alpha)
+{
+    glm::vec3 interpolatedPos = glm::mix(m_prevPosition, boundingBox->position, alpha);
+
+    m_camera->Position = interpolatedPos + glm::vec3(0.0f, 1.6f, 0.0f);
 }
 
 void Player::handleInput(float dt)

@@ -3,12 +3,18 @@
 #include "World.h"
 #include "AABB.h"
 
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 class Player
 {
 public:
     Player(Camera* camera, World* world, glm::vec3 startPos);
 
     void update(float dt, World& world);
+    void interpolate(float alpha);
+
     void handleInput(float dt);
 
     glm::vec3 getPosition() const;
@@ -25,4 +31,6 @@ public:
 private:
     Camera* m_camera;
     World* m_world;
+
+    glm::vec3 m_prevPosition;
 };

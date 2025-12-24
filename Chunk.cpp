@@ -45,6 +45,12 @@ Chunk::~Chunk() {
 
 }
 
+void Chunk::uploadMesh(const std::vector<Vertex>& opaque, const std::vector<Vertex>& transparent) {
+    m_mesh = std::make_unique<Mesh>(opaque);
+    m_transparentMesh = std::make_unique<Mesh>(transparent);
+    isMeshPending = false;
+}
+
 bool Chunk::isBlockSolid(int x, int y, int z) {
     if (y < 0 || y >= CHUNK_SIZE) return false;
 
@@ -75,17 +81,6 @@ uint8_t Chunk::getMeta(int x, int y, int z) const {
 
 void Chunk::setMeta(int x, int y, int z, uint8_t data) {
     m_metadata[x][y][z] = data;
-}
-
-void Chunk::update() 
-{
-    std::vector<Vertex> opaqueVertices;
-    std::vector<Vertex> transparentVertices;
-
-    ChunkMesher::GenerateMesh(*this, opaqueVertices, transparentVertices);
-
-    m_mesh = std::make_unique<Mesh>(opaqueVertices);
-    m_transparentMesh = std::make_unique<Mesh>(transparentVertices);
 }
 
 void Chunk::drawOpaque(Shader& shader) {

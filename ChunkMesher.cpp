@@ -3,8 +3,10 @@
 #include "World.h"
 #include "CubeVertices.h"
 
-void ChunkMesher::GenerateMesh(Chunk& chunk, std::vector<Vertex>& opaqueVertices, std::vector<Vertex>& transparentVertices)
+ChunkMeshData ChunkMesher::GenerateMesh(Chunk& chunk)
 {
+    ChunkMeshData data;
+
     for (int x = 0; x < Chunk::CHUNK_SIZE; x++) {
         for (int y = 0; y < Chunk::CHUNK_HEIGHT; y++) {
             for (int z = 0; z < Chunk::CHUNK_SIZE; z++) {
@@ -16,35 +18,36 @@ void ChunkMesher::GenerateMesh(Chunk& chunk, std::vector<Vertex>& opaqueVertices
                 bool isTransparent = def.isTransparent;
 
                 std::vector<Vertex>* targetList = isTransparent ?
-                    &transparentVertices : &opaqueVertices;
+                    &data.transparentVertices : &data.opaqueVertices;
 
                 float h = 1.0f;
-                // Capture the actual metadata for the current block
                 uint8_t currentMeta = chunk.getMeta(x, y, z);
 
+                bool sameLiquidAbove = false;
+
                 if (def.isLiquid) {
-                    // FIX: Check if it is a Source block.
-                    // Source blocks should always be full (1.0f), regardless of meta.
                     if (type == WATER_SOURCE) {
                         h = 1.0f;
                     }
                     else {
-                        // Only calculate variable height for Flowing water
-                        h = (float)(currentMeta + 1) / 5.0f;
-
-                        // === FIX: CLAMP HEIGHT ===
-                        // Prevents texture bleeding if meta is >= 5 (e.g. falling water)
+                        h = (float)(currentMeta + 1) / 12.0f;
                         if (h > 1.0f) h = 1.0f;
                     }
 
-                    // Existing logic: connecting to water above
-                    if (chunk.getBlock(x, y + 1, z) == type) {
-                        h = 1.0f;
+                    if (y < Chunk::CHUNK_HEIGHT - 1) {
+                        uint8_t blockAbove = chunk.getBlock(x, y + 1, z);
+
+                        if (blockAbove == type) {
+                            sameLiquidAbove = true;
+                        }
+
+                        if (BlockRegistry::Get().IsLiquid(blockAbove)) {
+                            h = 1.0f;
+                        }
                     }
                 }
 
                 // === GENERATE FACES ===
-                // CHANGED: We now pass 'currentMeta' instead of '1' to shouldRenderFace
                 if (shouldRenderFace(chunk, x - 1, y, z, type, currentMeta))
                     addFace(VERTICES::LEFT_FACE, x, y, z, def.side.x, def.side.y, *targetList, h, true);
 
@@ -54,9 +57,11 @@ void ChunkMesher::GenerateMesh(Chunk& chunk, std::vector<Vertex>& opaqueVertices
                 if (shouldRenderFace(chunk, x, y - 1, z, type, currentMeta))
                     addFace(VERTICES::BOTTOM_FACE, x, y, z, def.bottom.x, def.bottom.y, *targetList, h, false);
 
-                if (shouldRenderFace(chunk, x, y + 1, z, type, currentMeta))
-                    addFace(VERTICES::TOP_FACE, x, y, z, def.top.x, def.top.y, *targetList, h, false);
-
+                if (shouldRenderFace(chunk, x, y + 1, z, type, currentMeta)) {
+                    if (!def.isLiquid || !sameLiquidAbove) {
+                        addFace(VERTICES::TOP_FACE, x, y, z, def.top.x, def.top.y, *targetList, h, false);
+                    }
+                }
                 if (shouldRenderFace(chunk, x, y, z - 1, type, currentMeta))
                     addFace(VERTICES::FRONT_FACE, x, y, z, def.side.x, def.side.y, *targetList, h, true);
 
@@ -65,6 +70,8 @@ void ChunkMesher::GenerateMesh(Chunk& chunk, std::vector<Vertex>& opaqueVertices
             }
         }
     }
+
+    return data;
 }
 
 // CHANGED: Updated signature and added Liquid Logic
@@ -94,10 +101,6 @@ bool ChunkMesher::shouldRenderFace(const Chunk& chunk, int neighborX, int neighb
     bool isNeighborTransparent = BlockRegistry::Get().IsTransparent(neighborType);
 
     if (isCurrentTransparent) {
-        // --- NEW LIQUID LOGIC ---
-        // If both are the same liquid, we usually cull the face.
-        // BUT, if the current block is TALLER (higher meta), we must render the side 
-        // to cover the gap.
         if (neighborType == currentBlockType && BlockRegistry::Get().IsLiquid(currentBlockType)) {
             return currentMeta > neighborMeta;
         }

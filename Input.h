@@ -16,6 +16,7 @@ class Input {
 private:
     static bool m_keys[512];
     static bool m_lastKeys[512];
+    static bool m_frameKeys[512];
 
     static float m_mouseX;
     static float m_mouseY;
@@ -27,8 +28,8 @@ private:
 
 public:
     static void Init();
-
     static void Update();
+    static void ClearPendingKeys();
 
     static void SetKey(int glfwKey, bool pressed);
     static void SetMouseButton(int glfwButton, bool pressed);
@@ -36,7 +37,6 @@ public:
 
 
     static bool IsKeyHeld(KeyCode key);
-
     static bool IsKeyPressed(KeyCode key);
 
     static bool GetButton(const std::string& action);

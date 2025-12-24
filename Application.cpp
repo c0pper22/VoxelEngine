@@ -89,40 +89,49 @@ void Application::run()
     while (!window->shouldClose())
     {
         float currentFrame = static_cast<float>(glfwGetTime());
-        dt = currentFrame - m_lastFrameTime;
+        float frameTime = currentFrame - m_lastFrameTime;
         m_lastFrameTime = currentFrame;
-        
+
+        if (frameTime > 0.25f) frameTime = 0.25f;
+
+        m_accumulator += frameTime;
+
         Input::Update();
         window->pollEvents();
 
-        update(dt);
-        render();
+        while (m_accumulator >= FIXED_TIMESTEP)
+        {
+            player->handleInput(FIXED_TIMESTEP);
+            player->update(FIXED_TIMESTEP, *world);
 
+            world->update(player->getPosition(), FIXED_TIMESTEP);
+            world->updateFluids(FIXED_TIMESTEP);
+
+            Input::ClearPendingKeys();
+
+            m_accumulator -= FIXED_TIMESTEP;
+        }
+
+        float alpha = m_accumulator / FIXED_TIMESTEP;
+        player->interpolate(alpha);
+
+        // --- 1. Start GUI Frame ---
+        gui->startFrame();
+
+        // --- 2. Update GUI Data ---
+        CTX ctx;
+        ctx.camera = camera.get();
+        ctx.world = world.get();
+        ctx.player = player.get();
+        ctx.viewDistance = &viewDistance;
+        ctx.chunkRenderDistance = &world->renderDistance;
+
+        gui->renderGui(ctx);
+
+        // --- 3. Render World & Finish GUI ---
+        render();
         window->swapBuffers();
     }
-}
-
-void Application::update(float dt)
-{
-    // 1. Prepare UI Logic
-    gui->startFrame();
-
-    // 2. Physics & Input
-    player->handleInput(dt);
-    player->update(dt, *world);
-
-    // 3. World Generation / Unloading
-    world->update(player->getPosition());
-    world->updateFluids(dt);
-    // 4. Update UI Data
-    CTX ctx;
-    ctx.camera = camera.get();
-    ctx.world = world.get();
-    ctx.player = player.get();
-    ctx.viewDistance = &viewDistance;
-    ctx.chunkRenderDistance = &world->renderDistance;
-
-    gui->renderGui(ctx);
 }
 
 void Application::render()

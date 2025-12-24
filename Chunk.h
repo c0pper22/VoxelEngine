@@ -10,12 +10,13 @@ class World;
 
 class Chunk {
     friend class ChunkMesher;
-
 public:
     static const int CHUNK_SIZE = 16;
     static const int CHUNK_HEIGHT = 128;
     static const int ATLAS_WIDTH = 16;
     static const int ATLAS_HEIGHT = 16;
+
+    std::atomic<bool> isMeshPending{ false };
 
     int chunkX;
     int chunkZ;
@@ -23,7 +24,8 @@ public:
     Chunk(World* world, int x, int z);
     ~Chunk();
 
-    void update(); 
+    void uploadMesh(const std::vector<Vertex>& opaque, const std::vector<Vertex>& transparent);
+
     void drawOpaque(Shader& shader);
     void drawTransparent(Shader& shader);
 

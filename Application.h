@@ -34,6 +34,9 @@ private:
 
     float viewDistance = 500.0f;
 
+    const float FIXED_TIMESTEP = 1.0f / 60.0f;
+    float m_accumulator = 0.0f;
+
     glm::mat4 view = glm::mat4(1.0f);
     glm::mat4 projection = glm::mat4(1.0f);
 
