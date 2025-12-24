@@ -22,6 +22,8 @@ void Mesh::draw(Shader& shader)
 
 void Mesh::setupMesh()
 {
+	if (vertices.empty()) return;
+
 	glGenVertexArrays(1, &VAO);
 	glGenBuffers(1, &VBO);
 

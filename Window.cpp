@@ -1,4 +1,5 @@
 #include "Window.h"
+#include "Input.h"
 
 static Window* g_CurrentWindow = nullptr;
 
@@ -29,6 +30,7 @@ Window::Window(int width, int height, const char* title)
     glfwSetCursorPosCallback(glfw_window, mouse_callback);
     glfwSetScrollCallback(glfw_window, scroll_callback);
     glfwSetKeyCallback(glfw_window, key_callback);
+    glfwSetMouseButtonCallback(glfw_window, mouse_button_callback);
 
     glfwSetInputMode(glfw_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
@@ -76,6 +78,8 @@ void Window::framebuffer_size_callback(GLFWwindow* window, int width, int height
 
 void Window::mouse_callback(GLFWwindow* window, double xpos, double ypos)
 {
+    Input::SetMousePosition(static_cast<float>(xpos), static_cast<float>(ypos));
+
     if (g_CurrentWindow && g_CurrentWindow->onMouseMove)
         g_CurrentWindow->onMouseMove(xpos, ypos);
 }
@@ -88,8 +92,16 @@ void Window::scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 
 void Window::key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
+    if (action == GLFW_PRESS) Input::SetKey(key, true);
+    else if (action == GLFW_RELEASE) Input::SetKey(key, false);
+
     if (g_CurrentWindow && g_CurrentWindow->onKey)
     {
         g_CurrentWindow->onKey(key, scancode, action, mods);
     }
+}
+
+void Window::mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {
+    bool pressed = (action == GLFW_PRESS);
+    Input::SetMouseButton(button, pressed);
 }

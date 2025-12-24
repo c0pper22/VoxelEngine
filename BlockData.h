@@ -1,35 +1,50 @@
 #pragma once
+#include <string>
+#include <vector>
 #include <cstdint>
 
 enum BLOCK_TYPE : uint8_t
 {
-    AIR,
+    AIR = 0,
     STONE,
     DIRT,
     GRASS,
     TNT,
     GLASS,
+    WATER_SOURCE,
+    WATER_FLOWING,
+    NUM_TYPES,
 };
 
-struct BlockProps {
-    int topX, topY;
-    int sideX, sideY;
-    int botX, botY;
+struct TextureCoords {
+    int x, y;
 };
 
-static const BlockProps BLOCK_DATABASE[] = {
-    {0, 0, 0, 0, 0, 0}, // AIR
-    {1, 15, 1, 15, 1, 15}, // STONE
-    {2, 15, 2, 15, 2, 15}, // DIRT
-    {0, 15, 3, 15, 2, 15}, // GRASS
-    {9, 15, 8, 15, 10, 15}, // TNT
-    {1, 12, 1, 12, 1, 12} // GLASS
+struct BlockDefinition {
+    std::string name = "Unknown";
+
+    bool isSolid = true;
+    bool isTransparent = false;
+    bool isLiquid = false;
+
+    TextureCoords top = { 0, 0 };
+    TextureCoords side = { 0, 0 };
+    TextureCoords bottom = { 0, 0 };
 };
 
-inline const BlockProps& GetBlockProps(uint8_t blockType) {
-    return BLOCK_DATABASE[blockType];
-}
+class BlockRegistry {
+public:
+    static BlockRegistry& Get();
 
-inline bool isBlockTransparent(uint8_t blockType) {
-    return blockType == AIR || blockType == GLASS;
-}
+    void Init();
+
+    const BlockDefinition& GetBlock(uint8_t id) const;
+
+    bool IsSolid(uint8_t id) const;
+    bool IsTransparent(uint8_t id) const;
+    bool IsLiquid(uint8_t id) const;
+
+private:
+    BlockRegistry();
+    std::vector<BlockDefinition> m_blocks;
+};

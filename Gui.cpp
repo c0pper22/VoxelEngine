@@ -37,7 +37,7 @@ void Gui::renderGui(CTX& ctx)
         ImGui::Text("This is some useful text.");
 
         ImGui::SliderFloat("View Distance", ctx.viewDistance, 0.1f, 2000.0f);
-        ImGui::SliderInt("Render Distance", ctx.chunkRenderDistance, 0, 24);
+        ImGui::SliderInt("Render Distance", ctx.chunkRenderDistance, 0, 48);
 
         if (ImGui::Button("Button"))
             counter++;
